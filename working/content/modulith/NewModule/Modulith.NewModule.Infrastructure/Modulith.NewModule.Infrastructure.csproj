@@ -19,6 +19,8 @@
     <PackageReference Include="DotNetCore.CAP" Version="7.2.1" />
     <PackageReference Include="DotNetCore.CAP.RabbitMQ" Version="7.2.1" />
     <PackageReference Include="DotNetCore.CAP.PostgreSql" Version="7.2.1" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.0" />
+    <PackageReference Include="StackExchange.Redis" Version="2.6.123" />
   </ItemGroup>
 
 </Project> 

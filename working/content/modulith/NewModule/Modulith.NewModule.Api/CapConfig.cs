@@ -11,6 +11,7 @@ public static class CapConfig
             x.UsePostgreSql(configuration.GetConnectionString("DefaultConnection"));
             x.UseRabbitMQ("rabbitmq", 5672, "guest", "guest");
             x.UseDashboard();
+            x.UseRedisLock(configuration.GetConnectionString("Redis"));
         });
     }
 } 

@@ -431,3 +431,70 @@ public class CapEventSubscriber
 
 ## Docker Compose
 - RabbitMQ is included in the default `docker-compose.yml` and will work out of the box with CAP. 
+
+# Redis Integration
+
+This template includes Redis support for distributed caching and CAP distributed locks.
+
+## Docker Compose
+- Redis is included and available at `redis:6379`.
+
+## NuGet Packages
+- Microsoft.Extensions.Caching.StackExchangeRedis
+- StackExchange.Redis
+
+## Configuration Example
+
+In your API or Infrastructure project:
+
+```csharp
+services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = Configuration.GetConnectionString("Redis");
+    options.InstanceName = "modulith:";
+});
+```
+
+In your `appsettings.json`:
+```json
+{
+  "ConnectionStrings": {
+    "Redis": "redis:6379"
+  }
+}
+```
+
+## Using Redis Cache
+
+```csharp
+public class RedisCacheExampleService
+{
+    private readonly IDistributedCache _cache;
+    public RedisCacheExampleService(IDistributedCache cache) => _cache = cache;
+
+    public async Task SetValueAsync(string key, string value)
+    {
+        await _cache.SetStringAsync(key, value, new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+        });
+    }
+
+    public async Task<string?> GetValueAsync(string key)
+    {
+        return await _cache.GetStringAsync(key);
+    }
+}
+```
+
+## CAP Redis Lock Support
+
+To enable distributed locks for CAP:
+
+```csharp
+services.AddCap(x =>
+{
+    // ...
+    x.UseRedisLock(Configuration.GetConnectionString("Redis"));
+});
+``` 
