@@ -759,4 +759,23 @@ This template uses the CQRS (Command Query Responsibility Segregation) pattern:
 - Write unit tests for your domain models to ensure business rules are enforced.
 - See `TodoItemTests` for an example of testing domain behavior.
 
+---
+
+# Architecture Enforcement
+
+This template uses [ArchUnit.NET](https://www.archunit.net/) to enforce architectural rules as automated tests. This helps prevent architectural degradation over time and ensures that the modular structure is maintained.
+
+## How it Works
+- Architectural rules are defined as XUnit tests in your test projects (e.g., `Modulith.NewModule.Tests/Architecture/ArchitectureTests.cs`).
+- These tests run during your build process and will fail if any code violates the defined rules.
+
+## Example Rules
+- **Layer Dependencies**: Ensures that layers only depend on allowed layers (e.g., Domain not depending on Infrastructure).
+- **No Circular Dependencies**: Prevents cyclic references between projects.
+
+## How to Add/Modify Rules
+1. Open the `ArchitectureTests.cs` file in your module's test project.
+2. Define new rules or modify existing ones using ArchUnit.NET's fluent API.
+3. Run your tests to check for architectural compliance.
+
 --- 
