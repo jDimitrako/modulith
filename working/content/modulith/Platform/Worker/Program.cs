@@ -1,10 +1,9 @@
 using Hangfire;
 using Hangfire.PostgreSql;
 using Hangfire.Redis.StackExchange;
-using Modulith.NewModule.Infrastructure;
 using Modulith.SharedKernel.Infrastructure.OpenTelemetry;
 
-namespace Modulith.Worker;
+namespace Modulith.Platform.Worker;
 
 public class Program
 {
@@ -21,12 +20,9 @@ public class Program
 
                 services.AddSharedOpenTelemetry(
                     configuration,
-                    "Modulith.Worker", // Service name for OpenTelemetry
-                    "1.0.0"            // Service version
+                    "Modulith.Platform.Worker", // Service name for OpenTelemetry
+                    "1.0.0"                    // Service version
                 );
-
-                // Add NewModule Infrastructure services (for Hangfire jobs)
-                services.AddInfrastructureServices(configuration);
 
                 // Add Hangfire services
                 services.AddHangfire(config =>
@@ -39,7 +35,7 @@ public class Program
                 // Add the processing server as IHostedService
                 services.AddHangfireServer(serverOptions =>
                 {
-                    serverOptions.ServerName = "Modulith.Worker";
+                    serverOptions.ServerName = "Modulith.Platform.Worker";
                     serverOptions.Queues = new[] { "default", "critical" };
                     serverOptions.WorkerCount = Environment.ProcessorCount * 5;
                 });
