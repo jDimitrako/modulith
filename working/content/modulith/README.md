@@ -857,4 +857,91 @@ public class TodoController : ControllerBase
    - Provide migration guides
    - Include version information in API responses
 
+### Health Checks UI
+
+The template includes a comprehensive health monitoring system using `AspNetCore.HealthChecks.UI`. This provides a real-time dashboard to monitor the health of various components in your system.
+
+#### Features
+
+- **Real-time Monitoring**: Live dashboard showing the health status of all components
+- **Multiple Health Checks**:
+  - Database (PostgreSQL)
+  - Redis Cache
+  - RabbitMQ
+  - External Services
+  - Custom Health Checks
+- **Historical Data**: Track health status over time
+- **Customizable UI**: Styled dashboard with custom CSS
+- **REST API**: Programmatic access to health check results
+
+#### Endpoints
+
+- **Health Check UI**: `/health-ui` - Interactive dashboard
+- **Health Check API**: `/health` - JSON response with health status
+- **Health Check API UI**: `/health-api` - API documentation
+
+#### Configuration
+
+Health checks are configured in `appsettings.json`:
+
+```json
+{
+  "HealthChecksUI": {
+    "HealthChecks": [
+      {
+        "Name": "NewModule API",
+        "Uri": "/health"
+      }
+    ],
+    "EvaluationTimeInSeconds": 15,
+    "MinimumSecondsBetweenFailureNotifications": 60
+  }
+}
+```
+
+#### Adding Custom Health Checks
+
+1. Create a new health check class:
+
+```csharp
+public class CustomHealthCheck : IHealthCheck
+{
+    public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
+    {
+        // Implement your health check logic
+        return Task.FromResult(HealthCheckResult.Healthy("Custom check is healthy"));
+    }
+}
+```
+
+2. Register the health check in `HealthChecksConfig.cs`:
+
+```csharp
+services.AddHealthChecks()
+    .AddCheck<CustomHealthCheck>("Custom");
+```
+
+#### Best Practices
+
+1. **Check Critical Dependencies**:
+   - Database connections
+   - Message queues
+   - External services
+   - File system access
+   - Memory usage
+
+2. **Set Appropriate Timeouts**:
+   - Configure reasonable timeouts for each check
+   - Consider the impact on system performance
+
+3. **Monitor Health Check Results**:
+   - Set up alerts for unhealthy states
+   - Track health check history
+   - Use the data for capacity planning
+
+4. **Security**:
+   - Secure health check endpoints in production
+   - Use appropriate authentication
+   - Limit access to sensitive health data
+
 # ... existing code ... 

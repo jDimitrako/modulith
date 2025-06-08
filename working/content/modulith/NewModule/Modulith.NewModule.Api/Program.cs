@@ -9,11 +9,13 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 builder.Services.AddApiVersioningConfig();
+builder.Services.AddHealthChecksConfig(builder.Configuration);
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
+app.UseHealthChecksConfig();
 
 if (!app.Environment.IsDevelopment())
 {
