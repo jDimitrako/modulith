@@ -2,6 +2,9 @@ using DotNetCore.CAP;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Modulith.NewModule.Api.HealthChecks;
+using Modulith.NewModule.Api.Metrics;
+using Modulith.NewModule.Application.Configuration;
 using Modulith.NewModule.Application.IntegrationEvents;
 using Modulith.NewModule.Domain.Interfaces;
 using Modulith.NewModule.Infrastructure.Data;
@@ -16,6 +19,10 @@ public static class NewModuleServiceRegistrar
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        // Register configuration
+        services.Configure<NewModuleSettings>(
+            configuration.GetSection(NewModuleSettings.SectionName));
+
         // Register DbContext
         services.AddDbContext<NewModuleDbContext>(options =>
             options.UseNpgsql(
@@ -44,6 +51,10 @@ public static class NewModuleServiceRegistrar
 
         // Register MediatR
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+
+        // Register health checks
+        services.AddHealthChecks()
+            .AddNewModuleHealthChecks();
 
         return services;
     }
