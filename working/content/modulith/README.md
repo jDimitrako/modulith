@@ -618,4 +618,38 @@ services.AddCap(x =>
 2. Save the JSON file in `grafana/provisioning/dashboards/` (e.g., `orders-dashboard.json`).
 3. Use the `module` label in your Prometheus queries to filter metrics for the new module.
 
+---
+
+# Per-Module Database Schema
+
+## Schema per Module
+- Each module uses its own schema in the relational database (e.g., PostgreSQL).
+- This is configured in each module's `DbContext` using `modelBuilder.HasDefaultSchema("modulename")`.
+
+## Example
+
+```csharp
+public class UsersDbContext : PostgresDbContext
+{
+    public UsersDbContext(DbContextOptions<UsersDbContext> options) : base(options) { }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+        modelBuilder.HasDefaultSchema("users");
+        // ... entity configs ...
+    }
+}
+```
+
+## Benefits
+- Isolation and clarity for each module's tables
+- Easier migration to microservices
+- Security and permission management per schema
+
+## How to Add a New Module Schema
+1. In your module's `DbContext`, set the default schema to the module name.
+2. Run migrations; tables will be created under the correct schema.
+3. Use the schema name in queries if needed (e.g., `users.Users`).
+
 --- 
