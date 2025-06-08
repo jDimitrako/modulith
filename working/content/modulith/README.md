@@ -684,4 +684,30 @@ public class UsersDbContext : PostgresDbContext
 2. Inject and use shared services in your modules as needed.
 3. Add or extend middleware and pipeline behaviors for new cross-cutting concerns.
 
+---
+
+# CAP Configuration: Shared Default with Module Override
+
+## Shared Default CAP Configuration
+- The shared kernel provides a default CAP configuration via `AddSharedCap`.
+- All modules use this by default for consistent messaging and outbox/inbox tables.
+
+## Module-Level Override
+- Any module can override the default CAP configuration by calling `AddCapServices(..., useDefaultCap: false)` and providing its own settings (e.g., different DB, schema, or broker).
+- This allows for full isolation and easy migration to microservices.
+
+## Table/Schema Isolation
+- By default, CAP tables are created in the schema/database you configure.
+- You can use `x.UseSchema("modulename")` or set a table prefix for further isolation.
+
+## Example Usage
+
+```csharp
+// In module startup/configuration
+services.AddCapServices(configuration); // Uses shared CAP config
+
+// To override in a module:
+services.AddCapServices(configuration, useDefaultCap: false); // Uses module-specific CAP config
+```
+
 --- 

@@ -1,17 +1,29 @@
 using DotNetCore.CAP;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Modulith.SharedKernel;
 
 namespace Modulith.NewModule.Api;
 
 public static class CapConfig
 {
-    public static void AddCapServices(this IServiceCollection services, IConfiguration configuration)
+    public static void AddCapServices(this IServiceCollection services, IConfiguration configuration, bool useDefaultCap = true)
     {
-        services.AddCap(x =>
+        if (useDefaultCap)
         {
-            x.UsePostgreSql(configuration.GetConnectionString("DefaultConnection"));
-            x.UseRabbitMQ("rabbitmq", 5672, "guest", "guest");
-            x.UseDashboard();
-            x.UseRedisLock(configuration.GetConnectionString("Redis"));
-        });
+            // Use shared CAP configuration
+            services.AddSharedCap(configuration);
+        }
+        else
+        {
+            // Module-specific CAP configuration (override)
+            services.AddCap(x =>
+            {
+                x.UsePostgreSql(configuration.GetConnectionString("ModuleSpecificDb"));
+                x.UseRabbitMQ("rabbitmq", 5672, "guest", "guest", "module_vhost");
+                x.UseDashboard();
+                // Optionally: x.UseSchema("modulecap");
+            });
+        }
     }
 } 
