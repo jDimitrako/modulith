@@ -33,7 +33,10 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=appdb;Username=postgres;Password=postgres
+      - ConnectionStrings__Redis=redis:6379
       - OpenTelemetry__CollectorUrl=http://otel-collector:4317
+      - Hangfire__Username=admin
+      - Hangfire__Password=admin
     ports:
       - "8080:80"
     depends_on:
