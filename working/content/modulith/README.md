@@ -652,4 +652,36 @@ public class UsersDbContext : PostgresDbContext
 2. Run migrations; tables will be created under the correct schema.
 3. Use the schema name in queries if needed (e.g., `users.Users`).
 
+---
+
+# Cross-Cutting Concerns
+
+## Shared Infrastructure
+- Centralized logging, distributed cache, CAP for messaging, and other cross-cutting services are implemented in shared projects (e.g., SharedKernel).
+- Register these services in the DI container and use them in all modules.
+
+## Example Middleware
+- Use middleware for concerns like correlation ID propagation, logging, error handling, etc.
+- Example: `CorrelationIdMiddleware` sets and propagates a correlation ID for each request.
+
+## Example Shared Services
+- Place reusable services (e.g., `ICorrelationIdProvider`) in the Shared Kernel.
+- Register implementations (e.g., `CorrelationIdProvider`) in the DI container.
+- Inject and use in any module or middleware.
+
+## MediatR Pipeline Behaviors
+- Use MediatR pipeline behaviors for validation, logging, and other cross-cutting concerns in CQRS/mediator patterns.
+- Example: `ValidationBehavior` (in Shared Kernel) and `MediatRLoggingBehavior` (in API) are registered with MediatR and run for every request.
+
+## How to Use in Modules
+1. Register shared services and pipeline behaviors in your API or module startup:
+   ```csharp
+   services.AddSingleton<ICorrelationIdProvider, CorrelationIdProvider>();
+   services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+   services.AddTransient(typeof(IPipelineBehavior<,>), typeof(MediatRLoggingBehavior<,>));
+   app.UseMiddleware<CorrelationIdMiddleware>();
+   ```
+2. Inject and use shared services in your modules as needed.
+3. Add or extend middleware and pipeline behaviors for new cross-cutting concerns.
+
 --- 
