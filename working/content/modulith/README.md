@@ -787,4 +787,74 @@ The template incorporates global error handling using the **RFC 7807 Problem Det
 -   **`GlobalExceptionHandlingMiddleware`**: This custom middleware catches unhandled exceptions, logs them, and transforms them into `ProblemDetails` objects.
 -   **Consistent Responses**: All API errors will provide structured `ProblemDetails` with details like `type`, `title`, `status`, and `instance` (request path). In development, `detail` (exception message) and `stackTrace` are also included for easier debugging.
 
-This setup provides a standardized way for API consumers to understand and handle errors programmatically. 
+This setup provides a standardized way for API consumers to understand and handle errors programmatically.
+
+### API Versioning
+
+The template includes built-in support for API versioning using the `Microsoft.AspNetCore.Mvc.Versioning` package. This allows you to maintain multiple versions of your API endpoints while providing a clear upgrade path for consumers.
+
+#### Features
+
+- **Multiple Version Support**: APIs can be versioned using URL segments (e.g., `/api/v1/todos`), headers, or media types
+- **Default Version**: Version 1.0 is set as the default when no version is specified
+- **Version Reporting**: API versions are reported in response headers
+- **Swagger Integration**: API versions are properly documented in Swagger UI
+
+#### Versioning Strategies
+
+1. **URL Segment Versioning**:
+   ```http
+   GET /api/v1/todos
+   GET /api/v2/todos
+   ```
+
+2. **Header Versioning**:
+   ```http
+   GET /api/todos
+   x-api-version: 2.0
+   ```
+
+3. **Media Type Versioning**:
+   ```http
+   GET /api/todos
+   Accept: application/json;x-api-version=2.0
+   ```
+
+#### Implementation Example
+
+```csharp
+[ApiController]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/todos")]
+public class TodoController : ControllerBase
+{
+    // V1 implementation
+}
+
+[ApiController]
+[ApiVersion("2.0")]
+[Route("api/v{version:apiVersion}/todos")]
+public class TodoController : ControllerBase
+{
+    // V2 implementation with additional features
+}
+```
+
+#### Best Practices
+
+1. **Version Lifecycle**:
+   - Keep old versions until all consumers have migrated
+   - Document deprecation timelines
+   - Use semantic versioning (MAJOR.MINOR)
+
+2. **Breaking Changes**:
+   - Major version changes for breaking changes
+   - Minor version changes for new features
+   - Maintain backward compatibility within major versions
+
+3. **Documentation**:
+   - Clearly document version differences
+   - Provide migration guides
+   - Include version information in API responses
+
+# ... existing code ... 
