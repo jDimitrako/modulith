@@ -20,14 +20,17 @@ public class AddTodoCommandHandlerTests
         var options = new DbContextOptionsBuilder<ModulithNewModuleDbContext>()
             .UseInMemoryDatabase(databaseName: "AddTodoTestDb")
             .Options;
-        var db = new ModulithNewModuleDbContext(options);
-        var handler = new AddTodoCommandHandler(db);
-        var command = new AddTodoCommand("Test Todo");
+        var db = new ModulithNewModuleDbContext(options, Substitute.For<IMediator>());
+        var capPublisher = Substitute.For<DotNetCore.CAP.ICapPublisher>();
+        var cache = Substitute.For<Microsoft.Extensions.Caching.Distributed.IDistributedCache>();
+
+        var handler = new AddTodoCommandHandler(db, capPublisher, cache);
+        var command = new AddTodoCommand("Test Todo", "Description", DateTime.Today);
 
         var result = await handler.Handle(command, CancellationToken.None);
 
-        result.Title.Should().Be("Test Todo");
-        db.TodoItems.Should().ContainSingle(x => x.Title == "Test Todo");
+        result.Title.Value.Should().Be("Test Todo");
+        db.TodoItems.Should().ContainSingle(x => x.Title.Value == "Test Todo");
     }
 
     [Fact]
@@ -36,15 +39,15 @@ public class AddTodoCommandHandlerTests
         var options = new DbContextOptionsBuilder<ModulithNewModuleDbContext>()
             .UseInMemoryDatabase(databaseName: "AddTodoTestDb2")
             .Options;
-        var db = new ModulithNewModuleDbContext(options);
+        var db = new ModulithNewModuleDbContext(options, Substitute.For<IMediator>());
         var capPublisher = Substitute.For<DotNetCore.CAP.ICapPublisher>();
         var cache = Substitute.For<Microsoft.Extensions.Caching.Distributed.IDistributedCache>();
         var handler = new AddTodoCommandHandler(db, capPublisher, cache);
-        var command = new AddTodoCommand("Test Todo 2");
+        var command = new AddTodoCommand("Test Todo 2", "Another Description", DateTime.Now);
 
         var result = await handler.Handle(command, CancellationToken.None);
 
-        await capPublisher.Received(1).PublishAsync("todo.added", Arg.Is<object>(o => o.ToString().Contains("Test Todo 2")), Arg.Any<CancellationToken>());
-        await cache.Received(1).SetStringAsync($"todo:{result.Id}", result.Title, Arg.Any<DistributedCacheEntryOptions>(), Arg.Any<CancellationToken>());
+        await capPublisher.Received(1).PublishAsync("todo.added", Arg.Is<object>(o => o.GetPropertyValue<string>("Title") == "Test Todo 2"), Arg.Any<CancellationToken>());
+        await cache.Received(1).SetStringAsync($"todo:{result.Id}", result.Title.Value, Arg.Any<DistributedCacheEntryOptions>(), Arg.Any<CancellationToken>());
     }
 } 

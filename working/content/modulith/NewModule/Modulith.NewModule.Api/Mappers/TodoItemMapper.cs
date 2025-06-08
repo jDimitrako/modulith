@@ -9,7 +9,10 @@ public static class TodoItemMapper
         new TodoItemDto
         {
             Id = entity.Id,
-            Title = entity.Title,
-            IsComplete = entity.IsComplete
+            Title = entity.Title.Value,
+            IsComplete = entity.IsComplete,
+            Description = entity.Details.Description,
+            DueDate = entity.Details.DueDate,
+            Status = entity.IsComplete ? "Complete" : "Pending"
         };
 } 

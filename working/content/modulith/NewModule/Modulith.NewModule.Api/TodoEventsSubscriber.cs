@@ -11,7 +11,7 @@ public class TodoEventsSubscriber
     [CapSubscribe("todo.added")]
     public void OnTodoAdded(dynamic todo)
     {
-        _logger.LogInformation("Received todo.added event: {Id} - {Title}", todo.Id, todo.Title);
+        _logger.LogInformation("Received todo.added event: {Id} - {Title}", todo.Id, todo.Title.Value);
         // Additional logic here
     }
 } 

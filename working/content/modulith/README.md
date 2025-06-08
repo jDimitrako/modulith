@@ -728,4 +728,35 @@ This template includes a full Todo example as a blueprint for building modules:
 - Add more business logic, validation, event publishing, caching, mapping (including advanced scenarios), and tests as needed.
 - See the `Tests` folder for examples of unit and integration testing with xUnit, FluentAssertions, NSubstitute, and AutoMapper.
 
+---
+
+# CQRS Pattern
+
+This template uses the CQRS (Command Query Responsibility Segregation) pattern:
+
+- **Commands**: Change state (write). Example: `AddTodoCommand`.
+- **Queries**: Read data (read). Example: `GetTodosQuery`.
+- **Handlers**: Each command/query has its own handler.
+- **MediatR**: Used to dispatch commands and queries, enforcing separation.
+
+## How to Add a Command or Query
+1. Create a new command or query class in the appropriate folder.
+2. Implement a handler for it.
+3. Register any validators as needed.
+4. Use MediatR in your API/controller to send commands/queries.
+
+## Example
+- `AddTodoCommand` (write) and `GetTodosQuery` (read) in the Todo blueprint.
+
+# Rich Domain Models (No Anemic Models)
+
+- Domain models should encapsulate business logic and invariants, not just data.
+- Use methods on your entities/aggregates to perform operations (e.g., `MarkComplete()` on `TodoItem`).
+- Avoid "anemic" models (just properties, no behavior).
+- Place business rules and logic in the domain layer, not in handlers or services.
+
+## Domain Tests
+- Write unit tests for your domain models to ensure business rules are enforced.
+- See `TodoItemTests` for an example of testing domain behavior.
+
 --- 
