@@ -10,4 +10,4 @@
     <ProjectReference Include="..\..\Shared\Modulith.SharedKernel\Modulith.SharedKernel.csproj" />
   </ItemGroup>
 
-</Project> 
+</Project>

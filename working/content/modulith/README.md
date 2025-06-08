@@ -10,6 +10,69 @@ A template for creating modular monolith applications with PostgreSQL, vector se
 - Layered architecture (Domain, Application, Infrastructure, Api)
 - Platform services for shared functionality
 
+## Docker & Docker Compose
+
+This template includes Docker and Docker Compose support for local development and deployment.
+
+### Prerequisites
+- [Docker](https://www.docker.com/get-started) installed
+- [Docker Compose](https://docs.docker.com/compose/) (usually included with Docker Desktop)
+
+### Usage
+
+#### 1. Build and Run All Services
+
+```sh
+docker-compose up --build
+```
+
+This will start:
+- PostgreSQL (with pgvector and Apache AGE)
+- Redis
+- RabbitMQ (with management UI)
+- Seq (logging)
+- The main API (Modulith.Web by default)
+
+#### 2. Stopping and Cleaning Up
+
+To stop the containers:
+```sh
+docker-compose down
+```
+
+To remove all data volumes (including the database):
+```sh
+docker-compose down -v
+```
+
+#### 3. Overriding Environment Variables
+
+You can override environment variables (such as connection strings) in the `docker-compose.yml` file or by using a `.env` file.
+
+#### 4. Accessing Services
+- **Main API**: http://localhost:8080
+- **PostgreSQL**: localhost:5432 (user: postgres, password: postgres)
+- **Redis**: localhost:6379
+- **RabbitMQ UI**: http://localhost:15672 (user: guest, password: guest)
+- **Seq (logs)**: http://localhost:5341
+
+#### 5. Building Individual Services
+
+To build and run a specific service (e.g., a module API):
+```sh
+docker build -f NewModule/Modulith.NewModule.Api/Dockerfile -t newmoduleapi .
+docker run -p 5000:80 newmoduleapi
+```
+
+#### 6. Logs
+
+To view logs for all services:
+```sh
+docker-compose logs -f
+```
+
+---
+
 ## Prerequisites
 
 - .NET 8.0 SDK
