@@ -1,44 +1,50 @@
 version: '3.8'
 services:
   postgres:
-    image: ankane/pgvector
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: appdb
+    image: modulith/postgres-pgvector-age:latest
+    container_name: postgres
+    restart: always
     ports:
       - "5432:5432"
+    environment:
+      POSTGRES_DB: modulith_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
     volumes:
       - pgdata:/var/lib/postgresql/data
-    command: ["postgres", "-c", "shared_preload_libraries=age"]
   redis:
-    image: redis:7
+    image: redis:latest
+    container_name: redis
+    restart: always
     ports:
       - "6379:6379"
   rabbitmq:
     image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: always
     ports:
       - "5672:5672"
       - "15672:15672"
   seq:
-    image: datalust/seq
-    environment:
-      - ACCEPT_EULA=Y
+    image: datalust/seq:latest
+    container_name: seq
+    restart: always
     ports:
       - "5341:80"
+      - "8080:5341"
   modulithweb:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: modulithweb
+    restart: always
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=postgres;Database=appdb;Username=postgres;Password=postgres
+      - ConnectionStrings__Postgres=Host=postgres;Port=5432;Database=modulith_db;Username=admin;Password=admin
       - ConnectionStrings__Redis=redis:6379
       - OpenTelemetry__CollectorUrl=http://otel-collector:4317
-      - Hangfire__Username=admin
-      - Hangfire__Password=admin
     ports:
-      - "8080:80"
+      - "8080:8080"
     depends_on:
       - postgres
       - redis
@@ -62,7 +68,9 @@ services:
       - ./grafana/provisioning/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest
-    command: [--config=/etc/otel-collector-config.yml]
+    container_name: otel-collector
+    restart: always
+    command: ["--config=/etc/otel-collector-config.yml"]
     volumes:
       - ./otel-collector-config.yml:/etc/otel-collector-config.yml
     ports:
@@ -70,8 +78,49 @@ services:
       - "4318:4318" # OTLP HTTP receiver
   jaeger:
     image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    restart: always
+    environment:
+      COLLECTOR_OTLP_ENABLED: true
     ports:
       - "16686:16686" # Jaeger UI
       - "14268:14268" # Jaeger gRPC collector
+  modulithworker:
+    build:
+      context: .
+      dockerfile: Worker/Dockerfile
+    container_name: modulithworker
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Postgres=Host=postgres;Port=5432;Database=modulith_db;Username=admin;Password=admin
+      - ConnectionStrings__Redis=redis:6379
+      - Hangfire__Username=admin
+      - Hangfire__Password=admin
+      - OpenTelemetry__CollectorUrl=http://otel-collector:4317
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+      - seq
+      - otel-collector
+  newmoduleapi:
+    build:
+      context: .
+      dockerfile: NewModule/Modulith.NewModule.Api/Dockerfile
+    container_name: newmoduleapi
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Postgres=Host=postgres;Port=5432;Database=modulith_db;Username=admin;Password=admin
+      - OpenTelemetry__CollectorUrl=http://otel-collector:4317
+    ports:
+      - "8081:8080"
+    depends_on:
+      - postgres
+      - rabbitmq
+      - seq
+      - otel-collector
+
 volumes:
   pgdata: 

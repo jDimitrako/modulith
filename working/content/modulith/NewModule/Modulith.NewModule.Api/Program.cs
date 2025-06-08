@@ -30,6 +30,7 @@ builder.Services.AddStackExchangeRedisCache(options =>
 
 // Register cache service
 builder.Services.AddScoped<ICacheService, RedisCacheService>();
+builder.Services.AddScoped<OpenTelemetryExample>();
 
 var app = builder.Build();
 
