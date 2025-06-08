@@ -364,4 +364,70 @@ services.AddDbContext<YourModuleDbContext>(options =>
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+# CAP Integration (Outbox/Inbox/Event Bus)
+
+This template uses [CAP](https://github.com/dotnetcore/CAP) for reliable distributed messaging, outbox/inbox patterns, and event-driven architecture.
+
+## CAP Features
+- Outbox pattern: ensures events are only published if the local transaction commits
+- Inbox pattern: ensures idempotent event processing
+- Supports RabbitMQ, Kafka, PostgreSQL, and more
+- Built-in dashboard for monitoring
+
+## NuGet Packages
+- DotNetCore.CAP
+- DotNetCore.CAP.RabbitMQ
+- DotNetCore.CAP.PostgreSql
+
+## Configuration Example
+
+In your API or Infrastructure project:
+
+```csharp
+services.AddCap(x =>
+{
+    x.UsePostgreSql(Configuration.GetConnectionString("DefaultConnection"));
+    x.UseRabbitMQ("rabbitmq", 5672, "guest", "guest");
+    x.UseDashboard();
+});
+```
+
+## Publishing Events (Outbox)
+
+```csharp
+public class CapEventPublisher
+{
+    private readonly ICapPublisher _capBus;
+    public CapEventPublisher(ICapPublisher capBus) => _capBus = capBus;
+
+    public async Task PublishExampleEventAsync()
+    {
+        await _capBus.PublishAsync("example.event", new { Message = "Hello from CAP!" });
+    }
+}
+```
+
+## Subscribing to Events (Inbox)
+
+```csharp
+public class CapEventSubscriber
+{
+    [CapSubscribe("example.event")]
+    public void HandleExampleEvent(dynamic data)
+    {
+        // Handle the event (inbox pattern)
+        Console.WriteLine($"Received event: {data.Message}");
+    }
+}
+```
+
+## Dashboard
+- Access the CAP dashboard at `http://localhost:8080/cap` (or wherever your API is running)
+
+## Database
+- CAP will automatically create its own tables for outbox/inbox management (e.g., cap.published, cap.received)
+
+## Docker Compose
+- RabbitMQ is included in the default `docker-compose.yml` and will work out of the box with CAP. 

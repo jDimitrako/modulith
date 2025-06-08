@@ -16,6 +16,9 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
+    <PackageReference Include="DotNetCore.CAP" Version="7.2.1" />
+    <PackageReference Include="DotNetCore.CAP.RabbitMQ" Version="7.2.1" />
+    <PackageReference Include="DotNetCore.CAP.PostgreSql" Version="7.2.1" />
   </ItemGroup>
 
 </Project> 
