@@ -497,4 +497,47 @@ services.AddCap(x =>
     // ...
     x.UseRedisLock(Configuration.GetConnectionString("Redis"));
 });
-``` 
+```
+
+# Troubleshooting & FAQ
+
+## RabbitMQ + CAP
+
+**Q: My events are not being delivered or processed.**
+- Check that RabbitMQ is running (`docker-compose ps` should show it as healthy).
+- Check the CAP dashboard (`/cap`) for errors or retries.
+- Ensure your event names match between publisher and subscriber.
+- Check the RabbitMQ management UI (http://localhost:15672) for queues and messages.
+- Make sure your API can resolve the `rabbitmq` hostname (works in Docker Compose by default).
+
+**Q: I see connection errors to RabbitMQ.**
+- Ensure the connection string/host/port/user/password in your CAP config matches your RabbitMQ setup.
+- If running locally, try restarting Docker Compose.
+- Check for port conflicts on 5672 or 15672.
+
+**Q: Messages are stuck in the queue.**
+- Check the CAP dashboard for consumer errors or retries.
+- Ensure your subscriber method is decorated with `[CapSubscribe("event.name")]` and is public.
+- Check for exceptions in your subscriber code.
+
+**Q: CAP tables are missing in the database.**
+- CAP should auto-create its tables (e.g., cap.published, cap.received) on startup.
+- Ensure your database user has permission to create tables.
+- Check your connection string and database availability.
+
+**Q: The CAP dashboard is not available.**
+- Ensure your API is running and accessible at the expected port.
+- Check for errors in the API logs.
+- The dashboard is at `/cap` (e.g., http://localhost:8080/cap).
+
+## General Distributed Messaging Troubleshooting
+
+- **Check all service logs**: Use `docker-compose logs -f` to see real-time logs for all services.
+- **Network issues**: Ensure all services are on the same Docker network (handled by Compose).
+- **Database issues**: Ensure PostgreSQL is running and accessible; check for migration errors.
+- **Redis issues**: Ensure Redis is running and accessible; check for connection errors in logs.
+- **CAP retries**: CAP will retry failed messages; check the dashboard for retry counts and errors.
+- **Event versioning**: If you change event payloads, ensure all consumers are updated accordingly.
+- **CAP configuration**: Double-check all connection strings and CAP options in your configuration.
+
+--- 
