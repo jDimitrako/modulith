@@ -97,8 +97,7 @@ builder.Services.AddStackExchangeRedisCache(options =>
 builder.Services.AddScoped<ICacheService, RedisCacheService>();
 
 // Register modules
-// TODO: Add your module registrations here
-// Example: NewModuleModuleServiceRegistrar.ConfigureServices(builder.Services, builder.Configuration);
+UserModuleServiceRegistrar.ConfigureServices(builder.Services, builder.Configuration);
 
 var app = builder.Build();
 
