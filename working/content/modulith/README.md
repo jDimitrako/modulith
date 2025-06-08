@@ -710,4 +710,22 @@ services.AddCapServices(configuration); // Uses shared CAP config
 services.AddCapServices(configuration, useDefaultCap: false); // Uses module-specific CAP config
 ```
 
+---
+
+# Blueprint Example: Todo
+
+This template includes a full Todo example as a blueprint for building modules:
+
+- **Domain:** `TodoItem` entity with business logic.
+- **Application:** MediatR command/query handlers for adding and retrieving todos, with FluentValidation for validation, CAP event publishing, and Redis caching.
+- **Infrastructure:** DbContext with schema and entity registration.
+- **API:** Controller with endpoints for CRUD operations, and a CAP event subscriber.
+- **Tests:** Unit and integration tests for entity, command handler, CAP event publishing, Redis caching, and validation.
+
+## How to Use/Extend
+- Use the Todo example as a starting point for your own modules.
+- Copy and adapt the entity, command, handler, and controller patterns.
+- Add more business logic, validation, event publishing, caching, and tests as needed.
+- See the `Tests` folder for examples of unit and integration testing with xUnit, FluentAssertions, and NSubstitute, including CAP and Redis.
+
 --- 
