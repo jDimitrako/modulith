@@ -540,4 +540,30 @@ services.AddCap(x =>
 - **Event versioning**: If you change event payloads, ensure all consumers are updated accordingly.
 - **CAP configuration**: Double-check all connection strings and CAP options in your configuration.
 
+---
+
+# Logging & Observability
+
+## Logging
+- Uses Serilog for structured logging.
+- Logs sent to Seq (http://localhost:5341), console, and Sentry.
+
+## Error Tracking
+- Sentry integration for error and exception monitoring.
+- Configure your Sentry DSN in `appsettings.json`.
+
+## Metrics & Dashboards
+- Prometheus scrapes metrics from your .NET app at `/metrics`.
+- Grafana (http://localhost:3000, password: admin) for dashboards and visualization.
+- Prometheus config in `prometheus.yml`.
+
+## Configuration
+- See `appsettings.json` for Seq and Sentry URLs.
+- See `ObservabilityConfig.cs` for Serilog and Prometheus setup.
+
+## Usage
+- Use `ILogger<T>` or Serilog's static `Log` class for logging.
+- All logs and errors are available in Seq and Sentry.
+- Metrics are available in Prometheus and Grafana.
+
 --- 
