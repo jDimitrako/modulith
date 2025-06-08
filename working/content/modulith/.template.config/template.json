@@ -10,7 +10,7 @@
     "Monolith"
   ],
   "name": "modulith",
-  "description": "A solution add for creating a Modular Monolithic Web API using FastEndpoints and MediatR",
+  "description": "A solution template for creating a Modular Monolithic Web API using FastEndpoints and MediatR with layered architecture",
   "precedence": "0",
   "identity": "Ardalis.Modulith.1.0",
   "shortName": "modulith",
@@ -33,15 +33,15 @@
         },
         {
           "choice": "basic-module",
-          "description": "Basic module"
+          "description": "Basic module with layered architecture"
         },
         {
-          "choice": "ddd-module",
-          "description": "Ddd module"
+          "choice": "platform-module",
+          "description": "Platform module with shared services"
         }
       ],
       "defaultValue": "solution",
-      "description": "The type of authentication to use"
+      "description": "The type of module to create"
     },
     "IsSolution": {
       "type": "computed",
@@ -63,13 +63,7 @@
       "isEnabled": "(add != \"solution\")",
       "isRequired": "(add != \"solution\")",
       "fileRename": "_Module",
-      "replaces": "_Module",
-      "forms": {
-        "global": [
-          "ddd",
-          "new"
-        ]
-      }
+      "replaces": "_Module"
     },
     "to": {
       "displayName": "To",
@@ -151,9 +145,9 @@
     {
       "source": ".",
       "target": "./",
-      "condition": "(add == \"ddd-module\")",
+      "condition": "(add == \"platform-module\")",
       "include": [
-        "DddModule/**/*"
+        "Platform/**/*"
       ]
     }
   ],
@@ -176,15 +170,19 @@
     },
     {
       "condition": "(!IsSolution)",
-      "path": "NewModule/Modulith.NewModule/Modulith.NewModule.csproj"
+      "path": "NewModule/Modulith.NewModule.Domain/Modulith.NewModule.Domain.csproj"
     },
     {
       "condition": "(!IsSolution)",
-      "path": "NewModule/Modulith.NewModule.Contracts/Modulith.NewModule.Contracts.csproj"
+      "path": "NewModule/Modulith.NewModule.Application/Modulith.NewModule.Application.csproj"
     },
     {
       "condition": "(!IsSolution)",
-      "path": "NewModule/Modulith.NewModule.Tests/Modulith.NewModule.Tests.csproj"
+      "path": "NewModule/Modulith.NewModule.Infrastructure/Modulith.NewModule.Infrastructure.csproj"
+    },
+    {
+      "condition": "(!IsSolution)",
+      "path": "NewModule/Modulith.NewModule.Api/Modulith.NewModule.Api.csproj"
     }
   ],
   "postActions": [
