@@ -29,6 +29,104 @@ A modern, scalable template for building modular monolith applications with adva
   - Comprehensive logging
   - API documentation with Swagger
 
+## Adding a New Module
+
+To add a new module to the application, follow these steps:
+
+1. **Create Module Structure**
+   ```
+   YourModule/
+   ├── Modulith.YourModule/
+   │   ├── Controllers/
+   │   ├── Services/
+   │   └── Models/
+   ├── Modulith.YourModule.Contracts/
+   │   └── DTOs/
+   └── Modulith.YourModule.Tests/
+   ```
+
+2. **Add Module Project References**
+   - Add your module projects to the solution
+   - Reference the module in Modulith.API.csproj:
+   ```xml
+   <ItemGroup>
+     <ProjectReference Include="..\YourModule\Modulith.YourModule\Modulith.YourModule.csproj" />
+   </ItemGroup>
+   ```
+
+3. **Create Module Service Registrar**
+   ```csharp
+   // YourModule/Modulith.YourModule/YourModuleServiceRegistrar.cs
+   public static class YourModuleServiceRegistrar
+   {
+       public static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
+       {
+           // Register your module's services
+           services.AddScoped<IYourModuleService, YourModuleService>();
+           
+           // Add any module-specific configuration
+           services.Configure<YourModuleOptions>(configuration.GetSection("YourModule"));
+       }
+   }
+   ```
+
+4. **Register Module in Bootstrapper**
+   - Open `Modulith.API/Program.cs`
+   - Add your module registration:
+   ```csharp
+   // Register modules
+   YourModuleServiceRegistrar.ConfigureServices(builder.Services, builder.Configuration);
+   ```
+
+5. **Add Module Configuration**
+   - Add your module's configuration to `appsettings.json`:
+   ```json
+   {
+     "YourModule": {
+       "Option1": "value1",
+       "Option2": "value2"
+     }
+   }
+   ```
+
+6. **Add Module to Docker Compose** (if needed)
+   ```yaml
+   yourmoduleapi:
+     build:
+       context: .
+       dockerfile: YourModule/Modulith.YourModule/Dockerfile
+     container_name: yourmoduleapi
+     environment:
+       - ASPNETCORE_ENVIRONMENT=Development
+       - ConnectionStrings__Postgres=Host=postgres;Port=5432;Database=modulith_db;Username=admin;Password=admin
+     ports:
+       - "8082:8080"
+     depends_on:
+       - postgres
+   ```
+
+## Best Practices
+
+1. **Module Independence**
+   - Keep modules loosely coupled
+   - Use contracts for inter-module communication
+   - Avoid direct dependencies between modules
+
+2. **Configuration**
+   - Use module-specific configuration sections
+   - Keep sensitive data in user secrets or environment variables
+   - Use strongly-typed configuration objects
+
+3. **API Design**
+   - Use consistent URL patterns
+   - Version your APIs
+   - Document with Swagger/OpenAPI
+
+4. **Testing**
+   - Write unit tests for each module
+   - Include integration tests
+   - Test module interactions
+
 ## Prerequisites
 
 - [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
