@@ -859,89 +859,255 @@ public class TodoController : ControllerBase
 
 ### Health Checks UI
 
-The template includes a comprehensive health monitoring system using `AspNetCore.HealthChecks.UI`. This provides a real-time dashboard to monitor the health of various components in your system.
+The template includes Health Checks UI for monitoring the health of your services. It integrates with existing health checks and provides a web-based dashboard.
 
-#### Features
+### Usage
 
-- **Real-time Monitoring**: Live dashboard showing the health status of all components
-- **Multiple Health Checks**:
-  - Database (PostgreSQL)
-  - Redis Cache
-  - RabbitMQ
-  - External Services
-  - Custom Health Checks
-- **Historical Data**: Track health status over time
-- **Customizable UI**: Styled dashboard with custom CSS
-- **REST API**: Programmatic access to health check results
+1. **Access the Health Checks UI**: Once the application is running, navigate to `http://localhost:8080/healthchecks-ui` (or your configured port/path).
 
-#### Endpoints
+2. **Custom Styling**: You can customize the Health Checks UI by modifying the `wwwroot/healthchecks.css` file.
 
-- **Health Check UI**: `/health-ui` - Interactive dashboard
-- **Health Check API**: `/health` - JSON response with health status
-- **Health Check API UI**: `/health-api` - API documentation
+---
 
-#### Configuration
+## Distributed Tracing (OpenTelemetry)
 
-Health checks are configured in `appsettings.json`:
+The template includes OpenTelemetry for distributed tracing, allowing you to monitor requests as they flow through different services. Jaeger is used as the tracing backend. OpenTelemetry is implemented as a cross-cutting concern in the Shared Kernel project, making it available to all modules.
 
-```json
-{
-  "HealthChecksUI": {
-    "HealthChecks": [
-      {
-        "Name": "NewModule API",
-        "Uri": "/health"
-      }
-    ],
-    "EvaluationTimeInSeconds": 15,
-    "MinimumSecondsBetweenFailureNotifications": 60
-  }
-}
-```
+### Configuration
 
-#### Adding Custom Health Checks
+1. **Shared Configuration**: The OpenTelemetry configuration is centralized in `Modulith.SharedKernel/Infrastructure/OpenTelemetry/OpenTelemetryConfig.cs`. This ensures consistent tracing and metrics collection across all modules.
 
-1. Create a new health check class:
+2. **Module Usage**: Each module can use the shared configuration by calling `AddSharedOpenTelemetry` in its `Program.cs`:
 
-```csharp
-public class CustomHealthCheck : IHealthCheck
-{
-    public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
-    {
-        // Implement your health check logic
-        return Task.FromResult(HealthCheckResult.Healthy("Custom check is healthy"));
+    ```csharp
+    builder.Services.AddSharedOpenTelemetry(
+        builder.Configuration,
+        "Modulith.NewModule.Api",  // Service name
+        "1.0.0"                    // Service version
+    );
+    ```
+
+3. **`appsettings.json`**: Configure the OpenTelemetry collector URL in your module's `appsettings.json`:
+
+    ```json
+    "OpenTelemetry": {
+      "CollectorUrl": "http://otel-collector:4317"
     }
-}
+    ```
+
+### Usage with Docker Compose
+
+When running with Docker Compose, the `otel-collector` and `jaeger` services are included:
+
+```sh
+docker-compose up --build
 ```
 
-2. Register the health check in `HealthChecksConfig.cs`:
+This will start:
+- **OpenTelemetry Collector**: Receives traces and metrics from all modules.
+- **Jaeger**: The distributed tracing system for monitoring and troubleshooting transactions in complex distributed systems.
+
+### Accessing Jaeger UI
+
+Once the Docker Compose services are running, you can access the Jaeger UI at: `http://localhost:16686`
+
+From the Jaeger UI, you can:
+- Search for traces across all modules
+- View spans and their relationships
+- Analyze the flow of requests through your services
+- Filter traces by service name, operation, tags, and more
+
+### Cross-Cutting Benefits
+
+By implementing OpenTelemetry as a cross-cutting concern:
+- Consistent tracing and metrics collection across all modules
+- Centralized configuration and maintenance
+- Unified view of system behavior in Jaeger
+- Easy addition of new modules with built-in observability
+- Standardized instrumentation for common components (ASP.NET Core, HTTP clients, EF Core, Redis, etc.)
+
+---
+
+## Module Cross-Cutting Concerns
+
+Modules often share common cross-cutting concerns that can be implemented in a centralized manner to avoid duplication and enforce consistency. This template provides examples for:
+
+### 1. Correlation ID Propagation
+
+Correlation IDs are essential for tracing requests across multiple services and modules. The template includes:
+
+-   **`ICorrelationIdProvider.cs` and `CorrelationIdProvider.cs`**: Defines and implements a simple correlation ID provider in the `Modulith.SharedKernel` project.
+-   **`CorrelationIdMiddleware.cs`**: An example ASP.NET Core middleware in the `Modulith.NewModule.Api` project that extracts or generates a correlation ID and adds it to the HTTP response headers and `Serilog.Context.LogContext` for structured logging.
+
+### Usage
+
+Register the middleware in your `Program.cs`:
 
 ```csharp
-services.AddHealthChecks()
-    .AddCheck<CustomHealthCheck>("Custom");
+// ... existing code ...
+app.UseMiddleware<CorrelationIdMiddleware>();
+// ... existing code ...
 ```
 
-#### Best Practices
+And register the `ICorrelationIdProvider` in your DI container:
 
-1. **Check Critical Dependencies**:
-   - Database connections
-   - Message queues
-   - External services
-   - File system access
-   - Memory usage
+```csharp
+// ... existing code ...
+builder.Services.AddScoped<ICorrelationIdProvider, CorrelationIdProvider>();
+// ... existing code ...
+```
 
-2. **Set Appropriate Timeouts**:
-   - Configure reasonable timeouts for each check
-   - Consider the impact on system performance
+### 2. MediatR Pipeline Behaviors
 
-3. **Monitor Health Check Results**:
-   - Set up alerts for unhealthy states
-   - Track health check history
-   - Use the data for capacity planning
+MediatR behaviors allow you to inject logic before or after handling a request. The template includes:
 
-4. **Security**:
-   - Secure health check endpoints in production
-   - Use appropriate authentication
-   - Limit access to sensitive health data
+-   **`MediatRLoggingBehavior.cs`**: An example behavior in `Modulith.NewModule.Api` that logs information about MediatR requests and responses.
+-   **`ValidationBehavior.cs`**: A generic validation behavior in `Modulith.SharedKernel` that integrates with FluentValidation to automatically validate MediatR requests.
 
-# ... existing code ... 
+### Usage
+
+Register behaviors in your `Program.cs`:
+
+```csharp
+// ... existing code ...
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
+    cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+    cfg.AddOpenBehavior(typeof(MediatRLoggingBehavior<,>));
+});
+// ... existing code ...
+```
+
+---
+
+## Tests
+
+This template emphasizes the importance of testing and provides a foundational structure for different types of tests.
+
+### Project Structure
+
+-   **`Modulith.NewModule.Tests`**: Contains tests specific to the `NewModule` (e.g., unit, integration, and architecture tests).
+-   **`Modulith.SharedKernel.Tests`**: Contains tests for the `SharedKernel` project.
+
+### Testing Frameworks
+
+-   **xUnit**: A free, open-source, community-focused unit testing tool for .NET.
+-   **FluentAssertions**: A set of .NET extension methods that allow you to more naturally specify the expected outcome of a TDD or BDD-style test.
+-   **NSubstitute**: A friendly mocking library for .NET.
+-   **ArchUnitNET**: A .NET library for checking the architecture of C# code.
+
+### Architecture Enforcement with ArchUnit.NET
+
+Architecture tests ensure that your codebase adheres to predefined architectural rules, preventing common architectural pitfalls like layer violations or unwanted dependencies. The template includes `ArchitectureTests.cs` in both `Modulith.NewModule.Tests/Architecture` and `Modulith.SharedKernel.Tests/Architecture`.
+
+#### Examples of Architecture Rules:
+
+-   **Layer Dependency Rules**: Enforce that the Application layer can only depend on the Domain layer, and the Infrastructure layer can depend on Application and Domain, but not vice-versa.
+    ```csharp
+    // Example: Application layer should not depend on Infrastructure layer
+    ArchitecturalTest.CheckThat()
+        .TheLayer("Application")
+        .ShouldNotDependOnAnyLayer("Infrastructure")
+        .Build()
+        .Check(Architecture);
+    ```
+
+-   **Naming Convention Rules**: Ensure that classes in a specific layer follow a naming convention.
+    ```csharp
+    // Example: All classes in the Domain layer should end with "Domain"
+    ArchitecturalTest.CheckThat()
+        .TheLayer("Domain")
+        .Should().HaveNameEndingWith("Domain")
+        .Build()
+        .Check(Architecture);
+    ```
+
+-   **Forbidden Dependencies**: Prevent certain types from depending on specific namespaces.
+
+    ```csharp
+    // Example: Domain entities should not depend on external frameworks like ASP.NET Core
+    ArchitecturalTest.CheckThat()
+        .TheLayer("Domain")
+        .ShouldNotDependOn("Microsoft.AspNetCore")
+        .Build()
+        .Check(Architecture);
+    ```
+
+### Running Tests
+
+To run all tests from the solution directory:
+
+```bash
+dotnet test
+```
+
+To run tests from a specific test project:
+
+```bash
+dotnet test Modulith.NewModule.Tests
+```
+
+## Blueprints (Real Examples)
+
+This template provides real-world examples (blueprints) to demonstrate how to implement common patterns and features within the modular monolith architecture.
+
+### 1. Todo Example Blueprint
+
+This blueprint showcases a complete Todo application module, demonstrating:
+
+-   **Entities**: `TodoItem.cs` (a rich domain model).
+-   **Value Objects**: `TodoTitle.cs`.
+-   **Domain Events**: `TodoItemCreatedEvent.cs` and `TodoItemCompletedEvent.cs` for capturing state changes and enabling reactive patterns.
+-   **Domain Event Handlers**: `TodoItemCreatedEventHandler.cs` as a sample handler.
+-   **Commands and Queries (CQRS)**: `AddTodoCommand.cs` and `GetTodosQuery.cs` using MediatR.
+-   **Command/Query Handlers**: `AddTodoCommandHandler.cs` and `GetTodosQueryHandler.cs`.
+-   **FluentValidation**: `AddTodoCommandValidator.cs` for request validation.
+-   **Database Context**: `ModulithNewModuleDbContext.cs` for persisting `TodoItem`.
+-   **API Controller**: `TodoController.cs` for exposing Todo functionalities.
+-   **Tests**: Unit tests for entities, command handlers, and mappers.
+-   **CAP Integration**: `AddTodoCommandHandler` publishes a `TodoItemCreatedEvent` via CAP, and `TodoEventsSubscriber` consumes it.
+-   **Redis Caching**: `AddTodoCommandHandler` uses Redis for caching.
+
+#### Key Architectural Principles Demonstrated:
+
+-   **CQRS (Command Query Responsibility Segregation)**: Clear separation of read and write models.
+-   **Rich Domain Models**: Emphasizing behavior-rich entities over anemic models. Entities encapsulate business logic and maintain their own state consistency.
+-   **Domain Events**: Using domain events to decouple concerns and enable reactive architectures.
+-   **Layered Architecture**: Clear separation of concerns into Domain, Application, Infrastructure, and API layers.
+
+### 2. DTOs and Mappers
+
+This blueprint demonstrates how to handle data transfer objects (DTOs) and mapping between entities and DTOs using both manual mapping and AutoMapper.
+
+-   **DTOs**: `TodoItemDto.cs` and `TodoListDto.cs` for exposing data via the API.
+-   **Manual Mapper**: `TodoItemMapper.cs` provides a simple, explicit way to map between entities and DTOs.
+-   **AutoMapper**: `AutoMapperProfile.cs` shows how to configure AutoMapper for more complex mapping scenarios, including nested objects, collections, and custom value resolvers (e.g., mapping `TodoItem.Status`).
+-   **Usage in Controller**: `TodoController.cs` demonstrates how to use both manual and AutoMapper to transform data before sending responses.
+-   **Tests**: `TodoItemMapperTests.cs` and `AutoMapperProfileTests.cs` for testing mapping logic.
+
+### 3. Advanced Mapping Scenarios
+
+-   **Nested Objects**: Mapping entities with nested complex types (e.g., `TodoDetails.cs`).
+-   **Collections**: Handling mapping for lists and other collections.
+-   **Custom Value Resolvers**: Implementing custom logic for specific property mappings (e.g., transforming an enum status).
+
+### 4. Rich Domain Models vs. Anemic Models
+
+This template advocates for **rich domain models** where entities encapsulate their behavior and enforce business rules, as opposed to **anemic models** which are just data holders. `TodoItem.cs` serves as a prime example:
+
+-   **Private Setters and Constructors**: Prevents direct external modification and ensures objects are created in a valid state.
+-   **Methods for State Changes**: Business operations are performed through methods on the entity (e.g., `MarkAsCompleted()`), which enforce invariants and can raise domain events.
+-   **Domain Events**: Methods within the rich model can publish `IDomainEvent` instances when significant state changes occur, which are then dispatched by the `DbContext`.
+
+This approach leads to a more maintainable, testable, and robust domain layer.
+
+### 5. Domain Tests
+
+Tests for the domain layer (e.g., `TodoItemTests.cs`) focus on verifying the behavior and invariants of your rich domain models, ensuring that business rules are correctly enforced independently of the persistence or application layers.
+
+---
+
+## Contributing
+
+If you have suggestions for improvements or new features, feel free to open an issue or submit a pull request. 

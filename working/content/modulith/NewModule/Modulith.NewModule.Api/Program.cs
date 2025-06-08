@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using AutoMapper;
+using Modulith.SharedKernel.Infrastructure.OpenTelemetry;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,10 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 builder.Services.AddApiVersioningConfig();
 builder.Services.AddHealthChecksConfig(builder.Configuration);
+builder.Services.AddSharedOpenTelemetry(
+    builder.Configuration,
+    "Modulith.NewModule.Api",
+    "1.0.0");
 
 var app = builder.Build();
 
