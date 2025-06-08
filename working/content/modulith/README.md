@@ -716,16 +716,16 @@ services.AddCapServices(configuration, useDefaultCap: false); // Uses module-spe
 
 This template includes a full Todo example as a blueprint for building modules:
 
-- **Domain:** `TodoItem` entity with business logic.
+- **Domain:** `TodoItem` entity with business logic, nested `TodoDetails`, and `TodoList` with a collection of items.
 - **Application:** MediatR command/query handlers for adding and retrieving todos, with FluentValidation for validation, CAP event publishing, and Redis caching.
 - **Infrastructure:** DbContext with schema and entity registration.
-- **API:** Controller with endpoints for CRUD operations, and a CAP event subscriber.
-- **Tests:** Unit and integration tests for entity, command handler, CAP event publishing, Redis caching, and validation.
+- **API:** Controller with endpoints for CRUD operations, a CAP event subscriber, DTOs, manual mappers, and AutoMapper profile (including advanced mapping scenarios: nested objects, collections, custom value resolvers).
+- **Tests:** Unit and integration tests for entity, command handler, CAP event publishing, Redis caching, validation, DTO mapping, AutoMapper profile, and advanced mapping scenarios.
 
 ## How to Use/Extend
 - Use the Todo example as a starting point for your own modules.
-- Copy and adapt the entity, command, handler, and controller patterns.
-- Add more business logic, validation, event publishing, caching, and tests as needed.
-- See the `Tests` folder for examples of unit and integration testing with xUnit, FluentAssertions, and NSubstitute, including CAP and Redis.
+- Copy and adapt the entity, command, handler, controller, DTO, and mapping patterns.
+- Add more business logic, validation, event publishing, caching, mapping (including advanced scenarios), and tests as needed.
+- See the `Tests` folder for examples of unit and integration testing with xUnit, FluentAssertions, NSubstitute, and AutoMapper.
 
 --- 
