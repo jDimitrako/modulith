@@ -778,4 +778,13 @@ This template uses [ArchUnit.NET](https://www.archunit.net/) to enforce architec
 2. Define new rules or modify existing ones using ArchUnit.NET's fluent API.
 3. Run your tests to check for architectural compliance.
 
---- 
+---
+
+### Global Error Handling / Problem Details
+
+The template incorporates global error handling using the **RFC 7807 Problem Details** specification. This ensures that all unhandled exceptions and API errors return consistent, machine-readable responses.
+
+-   **`GlobalExceptionHandlingMiddleware`**: This custom middleware catches unhandled exceptions, logs them, and transforms them into `ProblemDetails` objects.
+-   **Consistent Responses**: All API errors will provide structured `ProblemDetails` with details like `type`, `title`, `status`, and `instance` (request path). In development, `detail` (exception message) and `stackTrace` are also included for easier debugging.
+
+This setup provides a standardized way for API consumers to understand and handle errors programmatically. 

@@ -12,8 +12,12 @@ builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
+
 if (!app.Environment.IsDevelopment())
 {
+    // The DeveloperExceptionPage is for development only. In production, GlobalExceptionHandlingMiddleware handles exceptions.
+    // If you need more detailed error pages in production for specific errors, you'd add them here AFTER the GlobalExceptionHandlingMiddleware.
     app.UseSwagger();
     app.UseSwaggerUI();
 }
