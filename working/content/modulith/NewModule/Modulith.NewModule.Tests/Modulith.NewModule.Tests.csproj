@@ -15,6 +15,11 @@
         <PackageReference Include="FastEndpoints.Testing" Version="5.30.0" />
         <PackageReference Include="FluentAssertions" Version="6.12.1" />
         <PackageReference Include="NSubstitute" Version="5.0.0" />
+        <PackageReference Include="Testcontainers.PostgreSql" Version="3.7.0" />
+        <PackageReference Include="Testcontainers.RabbitMq" Version="3.7.0" />
+        <PackageReference Include="Testcontainers.Redis" Version="3.7.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.0" />
     </ItemGroup>
 
     <ItemGroup>
