@@ -2,30 +2,30 @@ using DotNetCore.CAP;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Modulith.Template.Application.IntegrationEvents;
-using Modulith.Template.Domain.Interfaces;
-using Modulith.Template.Infrastructure.Data;
-using Modulith.Template.Infrastructure.Repositories;
+using Modulith.NewModule.Application.IntegrationEvents;
+using Modulith.NewModule.Domain.Interfaces;
+using Modulith.NewModule.Infrastructure.Data;
+using Modulith.NewModule.Infrastructure.Repositories;
 using System.Reflection;
 
-namespace Modulith.Template.Api;
+namespace Modulith.NewModule.Api;
 
-public static class TemplateModuleServiceRegistrar
+public static class NewModuleServiceRegistrar
 {
-    public static IServiceCollection AddTemplateModule(
+    public static IServiceCollection AddNewModule(
         this IServiceCollection services,
         IConfiguration configuration)
     {
         // Register DbContext
-        services.AddDbContext<TemplateDbContext>(options =>
+        services.AddDbContext<NewModuleDbContext>(options =>
             options.UseNpgsql(
-                configuration.GetConnectionString("TemplateDb"),
-                b => b.MigrationsAssembly(typeof(TemplateDbContext).Assembly.FullName)));
+                configuration.GetConnectionString("NewModuleDb"),
+                b => b.MigrationsAssembly(typeof(NewModuleDbContext).Assembly.FullName)));
 
         // Configure CAP
         services.AddCap(options =>
         {
-            options.UseEntityFramework<TemplateDbContext>();
+            options.UseEntityFramework<NewModuleDbContext>();
             options.UseRabbitMQ(options =>
             {
                 options.HostName = configuration["RabbitMQ:HostName"];

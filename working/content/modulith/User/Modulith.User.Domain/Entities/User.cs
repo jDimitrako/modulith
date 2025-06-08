@@ -1,6 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
 using Modulith.User.Domain.Events;
+using Modulith.User.Contracts.Events;
+using System;
+using System.Collections.Generic;
 
 namespace Modulith.User.Domain.Entities;
 
@@ -13,6 +16,9 @@ public class User : IdentityUser
     public bool IsActive { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? LastLoginAt { get; private set; }
+    public bool EmailConfirmed { get; private set; }
+    public DateTime? UpdatedAt { get; private set; }
+    public string[] Roles { get; private set; } = Array.Empty<string>();
 
     public IReadOnlyCollection<object> DomainEvents => _domainEvents.AsReadOnly();
 
@@ -20,6 +26,7 @@ public class User : IdentityUser
 
     public static User Create(
         string email,
+        string passwordHash,
         string firstName,
         string lastName)
     {
@@ -27,11 +34,13 @@ public class User : IdentityUser
         {
             UserName = email,
             Email = email,
+            PasswordHash = passwordHash,
             FirstName = firstName,
             LastName = lastName,
             IsActive = true,
+            EmailConfirmed = false,
             CreatedAt = DateTime.UtcNow,
-            EmailConfirmed = true // You might want to make this configurable
+            Roles = new[] { "User" }
         };
 
         user._domainEvents.Add(new UserCreatedEvent(
@@ -39,7 +48,7 @@ public class User : IdentityUser
             user.Email!,
             user.FirstName,
             user.LastName,
-            new List<string> { "User" }));
+            user.CreatedAt));
 
         return user;
     }
@@ -54,7 +63,8 @@ public class User : IdentityUser
         if (!IsActive) return;
         
         IsActive = false;
-        _domainEvents.Add(new UserDeactivatedEvent(Id, Email!));
+        UpdatedAt = DateTime.UtcNow;
+        _domainEvents.Add(new UserDeactivatedEvent(Id, UpdatedAt.Value));
     }
 
     public void Activate()
@@ -62,7 +72,8 @@ public class User : IdentityUser
         if (IsActive) return;
         
         IsActive = true;
-        _domainEvents.Add(new UserActivatedEvent(Id, Email!));
+        UpdatedAt = DateTime.UtcNow;
+        _domainEvents.Add(new UserActivatedEvent(Id, UpdatedAt.Value));
     }
 
     public void UpdateProfile(string firstName, string lastName)
@@ -72,24 +83,34 @@ public class User : IdentityUser
 
         FirstName = firstName;
         LastName = lastName;
+        UpdatedAt = DateTime.UtcNow;
 
         _domainEvents.Add(new UserUpdatedEvent(
             Id,
             Email!,
             FirstName,
             LastName,
-            new List<string> { "User" }));
+            UpdatedAt.Value));
     }
 
-    public void UpdateRoles(List<string> newRoles)
+    public void ConfirmEmail()
     {
-        var oldRoles = new List<string> { "User" }; // In a real app, get current roles
+        if (EmailConfirmed) return;
+
+        EmailConfirmed = true;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void UpdateRoles(string[] roles)
+    {
+        var oldRoles = Roles;
+        Roles = roles;
+        UpdatedAt = DateTime.UtcNow;
 
         _domainEvents.Add(new UserRoleChangedEvent(
             Id,
-            Email!,
-            oldRoles,
-            newRoles));
+            Roles,
+            UpdatedAt.Value));
     }
 
     public void ClearDomainEvents()

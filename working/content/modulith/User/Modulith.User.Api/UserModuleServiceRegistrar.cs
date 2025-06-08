@@ -11,6 +11,9 @@ using Modulith.User.Domain.Entities;
 using Modulith.User.Infrastructure.Authorization;
 using Modulith.User.Infrastructure.Persistence;
 using Modulith.User.Infrastructure.Services;
+using DotNetCore.CAP;
+using Modulith.User.Application.DomainEventHandlers;
+using System.Reflection;
 
 namespace Modulith.User.Api;
 
@@ -20,7 +23,7 @@ public static class UserModuleServiceRegistrar
     {
         // Register DbContext
         services.AddDbContext<UserDbContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("Postgres")));
+            options.UseNpgsql(configuration.GetConnectionString("Postgres"), b => b.MigrationsAssembly("Modulith.User.Infrastructure")));
 
         // Configure Identity
         services.AddIdentity<User, IdentityRole>(options =>
@@ -82,24 +85,25 @@ public static class UserModuleServiceRegistrar
             options.UseEntityFramework<UserDbContext>();
             options.UseRabbitMQ(options =>
             {
-                options.HostName = configuration["RabbitMQ:HostName"] ?? "localhost";
-                options.UserName = configuration["RabbitMQ:UserName"] ?? "guest";
-                options.Password = configuration["RabbitMQ:Password"] ?? "guest";
-                options.VirtualHost = configuration["RabbitMQ:VirtualHost"] ?? "/";
+                options.HostName = configuration["RabbitMQ:HostName"];
+                options.UserName = configuration["RabbitMQ:UserName"];
+                options.Password = configuration["RabbitMQ:Password"];
+                options.VirtualHost = configuration["RabbitMQ:VirtualHost"];
             });
 
             options.UseDashboard();
             options.FailedRetryCount = 3;
-            options.FailedRetryInterval = 60;
         });
 
         // Register services
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddScoped<IEmailService, EmailService>();
 
+        // Register Domain Event Handler
+        services.AddScoped<UserDomainEventHandler>();
+
         // Register MediatR
-        services.AddMediatR(cfg => 
-            cfg.RegisterServicesFromAssembly(typeof(UserModuleServiceRegistrar).Assembly));
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
         // Configure options
         services.Configure<UserModuleOptions>(configuration.GetSection("UserModule"));

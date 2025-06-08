@@ -1,11 +1,11 @@
 using DotNetCore.CAP;
 using Microsoft.Extensions.Logging;
-using Modulith.Template.Domain.Entities;
-using Modulith.Template.Domain.Interfaces;
+using Modulith.NewModule.Domain.Entities;
+using Modulith.NewModule.Domain.Interfaces;
 using Modulith.User.Contracts.Events;
 using System.Threading.Tasks;
 
-namespace Modulith.Template.Application.IntegrationEvents;
+namespace Modulith.NewModule.Application.IntegrationEvents;
 
 public class UserCreatedEventHandler : ICapSubscribe
 {
@@ -27,13 +27,13 @@ public class UserCreatedEventHandler : ICapSubscribe
 
         if (await _userRepository.ExistsAsync(@event.UserId))
         {
-            _logger.LogWarning("User {UserId} already exists in template module", @event.UserId);
+            _logger.LogWarning("User {UserId} already exists in new module", @event.UserId);
             return;
         }
 
         var user = User.Create(@event.UserId);
         await _userRepository.AddAsync(user);
 
-        _logger.LogInformation("Successfully created user {UserId} in template module", @event.UserId);
+        _logger.LogInformation("Successfully created user {UserId} in new module", @event.UserId);
     }
 } 

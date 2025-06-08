@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Modulith.NewModule.Domain\Modulith.NewModule.Domain.csproj" />
+    <ProjectReference Include="..\Modulith.Template.Domain\Modulith.Template.Domain.csproj" />
     <ProjectReference Include="..\..\User\Modulith.User.Contracts\Modulith.User.Contracts.csproj" />
   </ItemGroup>
 
