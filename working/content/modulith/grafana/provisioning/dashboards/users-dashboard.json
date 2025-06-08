@@ -1,0 +1,21 @@
+{
+  "id": null,
+  "title": "Users Module Metrics",
+  "tags": ["users", "module"],
+  "timezone": "browser",
+  "schemaVersion": 16,
+  "version": 1,
+  "panels": [
+    {
+      "type": "graph",
+      "title": "Business Events (Users)",
+      "targets": [
+        {
+          "expr": "business_event_counter{module=\"users\"}",
+          "legendFormat": "Users Events",
+          "refId": "A"
+        }
+      ]
+    }
+  ]
+} 

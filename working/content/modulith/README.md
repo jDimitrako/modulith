@@ -566,4 +566,56 @@ services.AddCap(x =>
 - All logs and errors are available in Seq and Sentry.
 - Metrics are available in Prometheus and Grafana.
 
+---
+
+# Grafana Dashboards
+
+## Pre-provisioned Dashboards
+- You can add JSON dashboard files to a `grafana/provisioning/dashboards` directory and reference them in your Grafana config.
+- Example dashboards: HTTP request rates, error rates, business KPIs, CAP event metrics.
+- See Grafana docs for [provisioning dashboards](https://grafana.com/docs/grafana/latest/administration/provisioning/#dashboards).
+
+# Sentry Advanced Usage
+
+## Custom Events & Context
+- Add user context, breadcrumbs, and custom events to Sentry using `SentrySdk.ConfigureScope` and `SentrySdk.CaptureMessage`.
+- Example in `ObservabilityExampleService`.
+
+## Performance Monitoring
+- Use Sentry transactions and spans to track performance of business operations.
+- Example in `ObservabilityExampleService`.
+
+# More Prometheus Metrics
+
+## Custom Metrics
+- Add business KPIs, CAP event metrics, and technical metrics using `prometheus-net`.
+- Example counters and histograms in `ObservabilityExampleService`.
+
+# Health Checks
+
+## .NET Health Checks
+- Register health checks in your API using `services.AddHealthChecks()`.
+- Forward health check results to Prometheus with `.ForwardToPrometheus()`.
+- Add custom health checks by implementing `IHealthCheck` (see `ExampleHealthCheck`).
+- Health check metrics will be available at `/metrics` and can be visualized in Grafana.
+
+---
+
+# Per-Module Grafana Dashboards
+
+## Metric Labels
+- All Prometheus metrics use a `module` label for per-module identification.
+- Example: `business_event_counter{module="users"}`
+
+## Dashboard Provisioning
+- Dashboards for each module are stored in `grafana/provisioning/dashboards/`.
+- Provisioning config is in `grafana/provisioning/dashboards.yml`.
+- Example dashboards: `users-dashboard.json`, `payments-dashboard.json`.
+- Grafana will automatically load and update dashboards for each module.
+
+## How to Add a New Module Dashboard
+1. Create a new dashboard in Grafana and export it as JSON.
+2. Save the JSON file in `grafana/provisioning/dashboards/` (e.g., `orders-dashboard.json`).
+3. Use the `module` label in your Prometheus queries to filter metrics for the new module.
+
 --- 

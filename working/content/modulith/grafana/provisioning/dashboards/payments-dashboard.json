@@ -1,0 +1,21 @@
+{
+  "id": null,
+  "title": "Payments Module Metrics",
+  "tags": ["payments", "module"],
+  "timezone": "browser",
+  "schemaVersion": 16,
+  "version": 1,
+  "panels": [
+    {
+      "type": "graph",
+      "title": "Business Events (Payments)",
+      "targets": [
+        {
+          "expr": "business_event_counter{module=\"payments\"}",
+          "legendFormat": "Payments Events",
+          "refId": "A"
+        }
+      ]
+    }
+  ]
+} 

@@ -28,4 +28,10 @@ public static class ObservabilityConfig
             endpoints.MapMetrics(); // Exposes /metrics endpoint for Prometheus
         });
     }
+
+    public static void AddHealthChecksWithPrometheus(this IServiceCollection services)
+    {
+        services.AddHealthChecks()
+            .ForwardToPrometheus();
+    }
 } 
